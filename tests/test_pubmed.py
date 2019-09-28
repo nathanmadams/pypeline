@@ -51,8 +51,8 @@ class PubmedTest(unittest.TestCase):
         self.assertEqual("yes", xml)
         self.assertEqual("88888888/", candidates.prefix_used)
 
-    def test_parse_file_number(self):
-        fn = pubmed.ArticleDir.parse_file_number("pubmed19n1111.xml")
+    def test_file_number(self):
+        fn = pubmed.ArticleDir.file_number("pubmed19n1111.xml")
         self.assertEqual(fn, 191111)
 
     def test_choose_latest_invalid(self):

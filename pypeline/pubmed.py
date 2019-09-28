@@ -41,8 +41,13 @@ class ArticleDir(object):
         logging.info(f"finished uploading {key}")
 
     @classmethod
-    def parse_file_number(cls, file_name):
-        return int(file_name[6:8]) * 10000 + int(file_name[9:13])
+    def parse_file_name(cls, file_name):
+        return int(file_name[6:8]), int(file_name[9:13])
+
+    @classmethod
+    def file_number(cls, file_name):
+        two_digit_year, seq_no = cls.parse_file_name(file_name)
+        return int(two_digit_year) * 10000 + int(seq_no)
 
     @classmethod
     def choose_latest(cls, candidates):
@@ -52,7 +57,7 @@ class ArticleDir(object):
             file_name = candidate.key.split(cls.PATH_SEP)[1]
             if file_name == cls.DELETE_MARKER_NAME:
                 return candidate
-            file_number = cls.parse_file_number(file_name)
+            file_number = cls.file_number(file_name)
             if file_number > max_file_number:
                 chosen = candidate
                 max_file_number = file_number
