@@ -47,8 +47,9 @@ class PubmedTest(unittest.TestCase):
             MockS3Object("88888888/pubmed19n2222.xml", content=b"no")
         ])
         bucket = MockS3Bucket(object_list=candidates)
-        xml = pubmed.ArticleDir(bucket, "88888888").fetch()
+        xml, key = pubmed.ArticleDir(bucket, "88888888").fetch()
         self.assertEqual("yes", xml)
+        self.assertEqual("pubmed19n3333.xml", key)
         self.assertEqual("88888888/", candidates.prefix_used)
 
     def test_file_number(self):

@@ -29,7 +29,8 @@ class ArticleDir(object):
             logging.info(f"no XML found in S3 for PMID {self.pmid}")
             return None
         logging.info(f"latest XML version for PMID {self.pmid} is {chosen.key}")
-        return chosen.get()['Body'].read().decode(self.ENCODING)
+        file_name = chosen.key.split(self.PATH_SEP)[1]
+        return chosen.get()['Body'].read().decode(self.ENCODING), file_name
 
     def list_versions(self):
         return list(self.bucket.objects.filter(Prefix="{}/".format(self.pmid)))
