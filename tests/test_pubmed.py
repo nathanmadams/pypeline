@@ -1,12 +1,14 @@
 import unittest
 import io
+import time
 
 from pypeline import pubmed
 
 class MockS3Object(object):
-    def __init__(self, key, content=b""):
+    def __init__(self, key, content=b"", last_modified=None):
         self.key = key
         self.content = content
+        self.last_modified = last_modified
 
     def upload_fileobj(self, content):
         self.uploaded_content = content.getvalue().decode('utf-8')
@@ -40,16 +42,18 @@ class PubmedTest(unittest.TestCase):
         self.assertIn("<DeletedFromPubmed/>", bucket.object_accessed.uploaded_content)
 
     def test_fetch(self):
+        last_modified = time.time()
         candidates = MockS3ObjectList([
             MockS3Object("88888888/pubmed19n1111.xml", content=b"no"),
             MockS3Object("88888888/pubmed19n0999.xml", content=b"no"),
-            MockS3Object("88888888/pubmed19n3333.xml", content=b"yes"),
+            MockS3Object("88888888/pubmed19n3333.xml", content=b"yes", last_modified=last_modified),
             MockS3Object("88888888/pubmed19n2222.xml", content=b"no")
         ])
         bucket = MockS3Bucket(object_list=candidates)
-        xml, key = pubmed.ArticleDir(bucket, "88888888").fetch()
+        xml, file_name, ts = pubmed.ArticleDir(bucket, "88888888").fetch()
         self.assertEqual("yes", xml)
-        self.assertEqual("pubmed19n3333.xml", key)
+        self.assertEqual(last_modified, ts)
+        self.assertEqual("pubmed19n3333.xml", file_name)
         self.assertEqual("88888888/", candidates.prefix_used)
 
     def test_file_number(self):

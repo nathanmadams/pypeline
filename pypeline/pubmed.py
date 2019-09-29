@@ -30,7 +30,8 @@ class ArticleDir(object):
             return None
         logging.info(f"latest XML version for PMID {self.pmid} is {chosen.key}")
         file_name = chosen.key.split(self.PATH_SEP)[1]
-        return chosen.get()['Body'].read().decode(self.ENCODING), file_name
+        content = chosen.get()['Body'].read().decode(self.ENCODING)
+        return content, file_name, chosen.last_modified
 
     def list_versions(self):
         return list(self.bucket.objects.filter(Prefix="{}/".format(self.pmid)))
