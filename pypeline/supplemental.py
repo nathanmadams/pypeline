@@ -25,16 +25,29 @@ class ArticleDir(object):
             "downloaded-at": now,
             "downloaded-link-text": link_text,
         }
-        for header, value in http_response.headers.items():
+        headers = http_response.headers
+        for header, value in headers.items():
             metadata["downloaded-header-" + header.lower()] = value
         md5 = hashlib.md5()
+        size = 0
         with tempfile.TemporaryFile() as temp_file:
             for chunk in http_response.iter_content(chunk_size=8192):
                 if chunk:
                     temp_file.write(chunk)
                     md5.update(chunk)
+                    size = size + len(chunk)
             temp_file.seek(0)
-            key = '/'.join([str(self.pmid), md5.hexdigest()])
-            self.bucket.put_object(Key=key, Body=temp_file, Metadata=metadata)
+            digest = md5.hexdigest()
+            key = '/'.join([str(self.pmid), digest])
+            self.bucket.put_object(
+                Key=key,
+                Body=temp_file,
+                Metadata=metadata,
+                ContentDisposition=headers.get('content-disposition'),
+                ContentEncoding=headers.get('content-encoding'),
+                ContentLength=size,
+                ContentMD5=digest,
+                ContentType=headers.get('content-type', 'binary/octet-stream')
+            )
 
 

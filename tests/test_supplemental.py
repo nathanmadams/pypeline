@@ -10,10 +10,8 @@ class MockS3UploadBucket(object):
     def __init__(self, name="dummy"):
         self.name = name
 
-    def put_object(self, Key, Body, Metadata):
-        self.uploaded_key = Key
-        self.uploaded_body = Body
-        self.uploaded_metadata = Metadata
+    def put_object(self, **kwargs):
+        self.uploaded_kwargs = kwargs
 
 class SupplementalTest(unittest.TestCase):
     def test_acquire(self):
@@ -23,8 +21,10 @@ class SupplementalTest(unittest.TestCase):
         resp = requests.get("https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5366041/pdf/nihms843860.pdf")
         a.acquire("fascinating data", resp)
 
-        self.assertEqual("12345678/", bucket.uploaded_key[:9])
-        md = bucket.uploaded_metadata
+        self.assertEqual("12345678/", bucket.uploaded_kwargs['Key'][:9])
+        self.assertEqual("application/pdf", bucket.uploaded_kwargs['ContentType'])
+        self.assertTrue(bucket.uploaded_kwargs['ContentLength'])
+        md = bucket.uploaded_kwargs['Metadata']
         self.assertEqual("application/pdf", md['downloaded-header-content-type'])
         self.assertEqual("robot_overlord", md['downloaded-by-agent'])
         self.assertEqual("mctesterson", md['downloaded-by-user'])
