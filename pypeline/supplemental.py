@@ -39,15 +39,17 @@ class ArticleDir(object):
             temp_file.seek(0)
             digest = md5.hexdigest()
             key = '/'.join([str(self.pmid), digest])
-            self.bucket.put_object(
-                Key=key,
-                Body=temp_file,
-                Metadata=metadata,
-                ContentDisposition=headers.get('content-disposition'),
-                ContentEncoding=headers.get('content-encoding'),
-                ContentLength=size,
-                ContentMD5=digest,
-                ContentType=headers.get('content-type', 'binary/octet-stream')
-            )
+            object_opts = {
+                'Key': key,
+                'Body': temp_file,
+                'Metadata': metadata,
+                'ContentLength': size,
+                'ContentMD5': digest
+            }
+            if 'content-encoding' in headers:
+                object_opts['ContentEncoding'] = headers['content-encoding']
+            if 'content-type' in headers:
+                object_opts['ContentType'] = headers['content-type']
+            self.bucket.put_object(**object_opts)
 
 
