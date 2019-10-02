@@ -2,6 +2,7 @@
 import datetime
 import tempfile
 import hashlib
+import base64
 
 class ArticleDir(object):
 
@@ -37,14 +38,13 @@ class ArticleDir(object):
                     md5.update(chunk)
                     size = size + len(chunk)
             temp_file.seek(0)
-            digest = md5.hexdigest()
-            key = '/'.join([str(self.pmid), digest])
+            key = '/'.join([str(self.pmid), md5.hexdigest()])
             object_opts = {
                 'Key': key,
                 'Body': temp_file,
                 'Metadata': metadata,
                 'ContentLength': size,
-                'ContentMD5': digest
+                'ContentMD5': base64.b64encode(md5.digest())
             }
             if 'content-encoding' in headers:
                 object_opts['ContentEncoding'] = headers['content-encoding']
