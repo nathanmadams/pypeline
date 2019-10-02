@@ -17,11 +17,12 @@ class ArticleDir(object):
 
     def acquire(self, link_text, http_response):
         http_response.raise_for_status()
+        now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
         metadata = {
             "downloaded-from-url": http_response.url,
             "downloaded-by-agent": self.agent,
             "downloaded-by-user": self.username,
-            "downloaded-at": datetime.datetime.now(),
+            "downloaded-at": now,
             "downloaded-link-text": link_text,
         }
         for header, value in http_response.headers.items():
