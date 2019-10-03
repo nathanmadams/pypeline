@@ -31,8 +31,9 @@ class ArticleDir(object):
             "downloaded-link-text": link_text,
         }
         headers = http_response.headers
-        for header, value in headers.items():
-            metadata["downloaded-header-" + header.lower()] = value
+        for header in ['content-disposition', 'date']:
+            if header in headers:
+                metadata["downloaded-header-" + header] = headers[header]
         md5 = hashlib.md5()
         size = 0
         with tempfile.TemporaryFile() as temp_file:
