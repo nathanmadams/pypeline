@@ -12,6 +12,9 @@ class ArticleDir(object):
         int(pmid)
         self.pmid = pmid
 
+    def all_files(self):
+        return list(self.bucket.objects.filter(Prefix="{}/".format(self.pmid)))
+
     def acquire(self, agent, username, link_text, http_response):
         assert agent, "agent param is required. it should describe the scraping program being used."
         self.agent = agent
