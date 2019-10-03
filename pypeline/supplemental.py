@@ -40,7 +40,9 @@ class ArticleDir(object):
                 'ContentMD5': base64.b64encode(md5.digest()).decode('utf-8')
             }
             if 'content-encoding' in http_response.headers:
-                object_opts['ContentEncoding'] = http_response.headers['content-encoding']
+                # the requests library automatically decodes gzip and deflate encodings
+                if not http_response.headers['content-encoding'].lower() in ['gzip', 'deflate']:
+                    object_opts['ContentEncoding'] = http_response.headers['content-encoding']
             if 'content-type' in http_response.headers:
                 object_opts['ContentType'] = http_response.headers['content-type']
             self.bucket.put_object(**object_opts)
