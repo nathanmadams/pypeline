@@ -32,7 +32,7 @@ class ArticleDir(object):
                     size = size + len(chunk)
             temp_file.seek(0)
             key = '/'.join([str(self.pmid), "originals", "files", md5.hexdigest()])
-            metadata_key = key = '/'.join([str(self.pmid), "originals", "metadata", md5.hexdigest()])
+            metadata_key = '/'.join([str(self.pmid), "originals", "metadata", md5.hexdigest()])
             object_opts = {
                 'Key': key,
                 'Body': temp_file,
