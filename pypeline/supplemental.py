@@ -3,6 +3,7 @@ import datetime
 import tempfile
 import hashlib
 import base64
+import json
 
 class ArticleDir(object):
 
@@ -21,19 +22,6 @@ class ArticleDir(object):
         assert username, "username param is required. it should describe the person running this program."
         self.username = username
         http_response.raise_for_status()
-        now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
-        metadata = {
-            "downloaded-from-request-url": http_response.request.url,
-            "downloaded-from-response-url": http_response.url,
-            "downloaded-by-agent": self.agent,
-            "downloaded-by-user": self.username,
-            "downloaded-at": now,
-            "downloaded-link-text": link_text,
-        }
-        headers = http_response.headers
-        for header in ['content-disposition', 'date']:
-            if header in headers:
-                metadata["downloaded-header-" + header] = headers[header]
         md5 = hashlib.md5()
         size = 0
         with tempfile.TemporaryFile() as temp_file:
@@ -43,18 +31,35 @@ class ArticleDir(object):
                     md5.update(chunk)
                     size = size + len(chunk)
             temp_file.seek(0)
-            key = '/'.join([str(self.pmid), md5.hexdigest()])
+            key = '/'.join([str(self.pmid), "originals", "files", md5.hexdigest()])
+            metadata_key = key = '/'.join([str(self.pmid), "originals", "metadata", md5.hexdigest()])
             object_opts = {
                 'Key': key,
                 'Body': temp_file,
-                'Metadata': metadata,
                 'ContentLength': size,
                 'ContentMD5': base64.b64encode(md5.digest()).decode('utf-8')
             }
-            if 'content-encoding' in headers:
-                object_opts['ContentEncoding'] = headers['content-encoding']
-            if 'content-type' in headers:
-                object_opts['ContentType'] = headers['content-type']
+            if 'content-encoding' in http_response.headers:
+                object_opts['ContentEncoding'] = http_response.headers['content-encoding']
+            if 'content-type' in http_response.headers:
+                object_opts['ContentType'] = http_response.headers['content-type']
             self.bucket.put_object(**object_opts)
+
+            now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
+            metadata = {
+                "downloaded-from-request-url": http_response.request.url,
+                "downloaded-from-response-url": http_response.url,
+                "downloaded-by-agent": self.agent,
+                "downloaded-by-user": self.username,
+                "downloaded-at": now,
+                "downloaded-link-text": link_text,
+                "key": key,
+                "content-length": size,
+                "content-md5": base64.b64encode(md5.digest()).decode('utf-8'),
+            }
+            for header in ['content-disposition', 'date', 'content-encoding', 'content-type']:
+                if header in http_response.headers:
+                    metadata["downloaded-header-" + header] = http_response.headers[header]
+            self.bucket.put_object(Key=metadata_key, Body=json.dumps(metadata))
 
 
