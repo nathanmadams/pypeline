@@ -6,17 +6,17 @@ import base64
 
 class ArticleDir(object):
 
-    def __init__(self, bucket, pmid, agent, username):
+    def __init__(self, bucket, pmid):
         assert bucket.name, "bucket param is required. it should be a boto3 bucket instance"
         self.bucket = bucket
         int(pmid)
         self.pmid = pmid
+
+    def acquire(self, agent, username, link_text, http_response):
         assert agent, "agent param is required. it should describe the scraping program being used."
         self.agent = agent
         assert username, "username param is required. it should describe the person running this program."
         self.username = username
-
-    def acquire(self, link_text, http_response):
         http_response.raise_for_status()
         now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
         metadata = {
