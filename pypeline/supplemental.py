@@ -44,7 +44,7 @@ class ArticleDir(object):
                 'Body': temp_file,
                 'Metadata': metadata,
                 'ContentLength': size,
-                'ContentMD5': base64.b64encode(md5.digest())
+                'ContentMD5': base64.b64encode(md5.digest()).decode('utf-8')
             }
             if 'content-encoding' in headers:
                 object_opts['ContentEncoding'] = headers['content-encoding']
