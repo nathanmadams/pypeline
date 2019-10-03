@@ -28,5 +28,5 @@ class SupplementalTest(unittest.TestCase):
         self.assertEqual("application/pdf", md['downloaded-header-content-type'])
         self.assertEqual("robot_overlord", md['downloaded-by-agent'])
         self.assertEqual("mctesterson", md['downloaded-by-user'])
-        self.assertEqual("https://genomenon-open-data.s3.amazonaws.com/sPc73m9/BasicsPresentation.pdf", md['downloaded-from-url'])
+        self.assertEqual("https://genomenon-open-data.s3.amazonaws.com/sPc73m9/BasicsPresentation.pdf", md['downloaded-from-response-url'])
         self.assertEqual("fascinating data", md['downloaded-link-text'])

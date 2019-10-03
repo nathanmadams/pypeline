@@ -23,7 +23,8 @@ class ArticleDir(object):
         http_response.raise_for_status()
         now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
         metadata = {
-            "downloaded-from-url": http_response.url,
+            "downloaded-from-request-url": http_response.request.url,
+            "downloaded-from-response-url": http_response.url,
             "downloaded-by-agent": self.agent,
             "downloaded-by-user": self.username,
             "downloaded-at": now,
