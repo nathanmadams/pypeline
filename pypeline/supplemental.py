@@ -6,6 +6,9 @@ import base64
 import json
 
 class ArticleDir(object):
+    ORIGINALS_DIR = "originals"
+    FILES_DIR = "files"
+    METADATA_DIR = "metadata"
 
     def __init__(self, bucket, pmid):
         assert bucket.name, "bucket param is required. it should be a boto3 bucket instance"
@@ -13,8 +16,8 @@ class ArticleDir(object):
         int(pmid)
         self.pmid = pmid
 
-    def all_files(self):
-        return list(self.bucket.objects.filter(Prefix="{}/".format(self.pmid)))
+    def all_file_metadata(self):
+        return list(self.bucket.objects.filter(Prefix="{}/{}/".format(self.pmid, self.METADATA_DIR)))
 
     def acquire(self, agent, username, link_text, http_response):
         assert agent, "agent param is required. it should describe the scraping program being used."
@@ -31,8 +34,8 @@ class ArticleDir(object):
                     md5.update(chunk)
                     size = size + len(chunk)
             temp_file.seek(0)
-            key = '/'.join([str(self.pmid), "originals", "files", md5.hexdigest()])
-            metadata_key = '/'.join([str(self.pmid), "originals", "metadata", md5.hexdigest()])
+            key = '/'.join([str(self.pmid), self.FILES_DIR, self.ORIGINALS_DIR, md5.hexdigest()])
+            metadata_key = '/'.join([str(self.pmid), self.METADATA_DIR, self.ORIGINALS_DIR, md5.hexdigest()])
             object_opts = {
                 'Key': key,
                 'Body': temp_file,
