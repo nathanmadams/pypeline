@@ -5,6 +5,9 @@ import hashlib
 import base64
 import json
 
+def pmid_from_key(key):
+    return key.split("/")[2]
+
 class ArticleDir(object):
     ORIGINALS_DIR = "originals"
     FILES_DIR = "files"
@@ -17,7 +20,7 @@ class ArticleDir(object):
         self.pmid = pmid
 
     def all_file_metadata(self):
-        return list(self.bucket.objects.filter(Prefix="{}/{}/".format(self.pmid, self.METADATA_DIR)))
+        return list(self.bucket.objects.filter(Prefix="{}/{}/{}/".format(self.METADATA_DIR, self.ORIGINALS_DIR, self.pmid)))
 
     def acquire(self, agent, username, link_text, http_response):
         assert agent, "agent param is required. it should describe the scraping program being used."
@@ -34,8 +37,8 @@ class ArticleDir(object):
                     md5.update(chunk)
                     size = size + len(chunk)
             temp_file.seek(0)
-            key = '/'.join([str(self.pmid), self.FILES_DIR, self.ORIGINALS_DIR, md5.hexdigest()])
-            metadata_key = '/'.join([str(self.pmid), self.METADATA_DIR, self.ORIGINALS_DIR, md5.hexdigest()])
+            key = '/'.join([self.FILES_DIR, self.ORIGINALS_DIR, str(self.pmid), md5.hexdigest()])
+            metadata_key = '/'.join([self.METADATA_DIR, self.ORIGINALS_DIR, str(self.pmid), md5.hexdigest()])
             object_opts = {
                 'Key': key,
                 'Body': temp_file,
@@ -48,7 +51,6 @@ class ArticleDir(object):
                     object_opts['ContentEncoding'] = http_response.headers['content-encoding']
             if 'content-type' in http_response.headers:
                 object_opts['ContentType'] = http_response.headers['content-type']
-            self.bucket.put_object(**object_opts)
 
             now = datetime.datetime.utcnow().replace(microsecond=0, tzinfo=datetime.timezone.utc).isoformat()
             metadata = {
@@ -66,5 +68,6 @@ class ArticleDir(object):
                 if header in http_response.headers:
                     metadata["downloaded-header-" + header] = http_response.headers[header]
             self.bucket.put_object(Key=metadata_key, Body=json.dumps(metadata))
+            self.bucket.put_object(**object_opts)
 
 
